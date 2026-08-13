@@ -1,0 +1,1667 @@
+# PRD — Arabic Learning Platform Based on YouTube Videos
+
+**Working Product Name:** Arabiyyah Learning Platform
+**PRD Version:** 1.0
+**Status:** Draft for MVP Development
+**Platform:** Web Application
+**Target Users:** Beginner to Intermediate Arabic Learners
+**Business Model:** Paid Courses / Subscription / One-Time Purchase
+
+---
+
+# 1. Product Overview
+
+The **Arabiyyah Learning Platform** is a web application designed to help users learn Arabic through structured educational videos hosted on YouTube.
+
+Users can:
+
+1. Create an account.
+2. Browse available courses.
+3. View course details.
+4. Purchase courses.
+5. Complete payments.
+6. Gain access after successful payment.
+7. Watch Arabic learning videos through YouTube.
+8. Follow lessons in a structured sequence.
+9. Mark lessons as completed.
+10. Track their learning progress.
+11. Access supporting learning materials.
+12. Resume learning from their last completed lesson.
+
+Administrators can:
+
+1. Create and manage courses.
+2. Create and manage modules.
+3. Add YouTube videos.
+4. Arrange lesson sequences.
+5. Set course pricing.
+6. Manage users.
+7. Manage transactions.
+8. Monitor student progress.
+9. Manage supporting learning content.
+
+---
+
+# 2. Problem Statement
+
+Many people want to learn Arabic through YouTube because YouTube provides a large amount of free and high-quality educational content.
+
+However, learners often face several problems:
+
+### Learner Problems
+
+* Learning materials are scattered across different videos.
+* Learners do not know where to start.
+* There is no clear learning path.
+* It is difficult to track which lessons have already been completed.
+* There is no structured curriculum.
+* Learners have difficulty distinguishing beginner, intermediate, and advanced materials.
+* Educational videos are mixed with unrelated YouTube content.
+* There is no integrated payment and course-access system.
+* There is no dedicated learning dashboard.
+
+### Instructor Problems
+
+Instructors who already have educational videos on YouTube still need to build their own system to:
+
+* organize videos,
+* sell courses,
+* manage access,
+* manage students,
+* manage payments,
+* monitor learning progress.
+
+**The product solves these problems by transforming a collection of YouTube videos into a structured, paid learning experience.**
+
+---
+
+# 3. Product Vision
+
+> **To become an Arabic learning platform that enables people to learn Arabic in a structured, progressive, and measurable way through accessible video-based learning.**
+
+The core product principle is:
+
+> **YouTube as the video delivery platform → Web App as the learning platform.**
+
+YouTube is not the main product.
+
+The Web App provides:
+
+> **Structure + Learning Path + Access Control + Progress Tracking + Learning Experience**
+
+---
+
+# 4. Target Users
+
+## Persona 1 — Beginner Arabic Learner
+
+**Profile:**
+
+Someone with little or no prior knowledge of Arabic.
+
+**Needs:**
+
+* Start from the basics.
+* Simple explanations.
+* Step-by-step learning.
+* A clear learning sequence.
+
+**Pain Point:**
+
+> "I want to learn Arabic, but I don't know where to start."
+
+---
+
+## Persona 2 — Qur'an Learner
+
+Someone who wants to learn Arabic in order to better understand:
+
+* the Qur'an,
+* Hadith,
+* classical Islamic texts,
+* Arabic texts in general.
+
+Their learning needs may include:
+
+* vocabulary,
+* Nahwu,
+* Shorof,
+* Arabic reading,
+* sentence structure,
+* text comprehension.
+
+---
+
+## Persona 3 — Intermediate Learner
+
+Someone who already has basic Arabic knowledge but wants to improve their skills.
+
+**Needs:**
+
+* Advanced materials.
+* Exercises.
+* Text analysis.
+* Assessments.
+* A clear learning path.
+
+---
+
+# 5. Product Goals
+
+## Primary Goals
+
+The MVP must be able to:
+
+* Create user accounts.
+* Authenticate users.
+* Display a course catalog.
+* Display course details.
+* Process course purchases.
+* Verify payments.
+* Grant course access.
+* Display YouTube learning videos.
+* Track learning progress.
+* Provide a student dashboard.
+
+## Secondary Goals
+
+After the MVP, the platform may support:
+
+* Quizzes.
+* Certificates.
+* Gamification.
+* Comments.
+* Community/forum.
+* Live classes.
+* AI-powered Arabic tutoring.
+* Vocabulary tracking.
+* Flashcards.
+
+---
+
+# 6. MVP Non-Goals
+
+To prevent excessive scope, the MVP will **not** initially include:
+
+* Native Android application.
+* Native iOS application.
+* Live streaming.
+* Advanced community/forum features.
+* AI tutor.
+* Complex certification system.
+* Advanced gamification.
+* Instructor marketplace.
+
+These features can be considered for future development.
+
+---
+
+# 7. Primary User Journey
+
+The primary user flow is:
+
+```text
+Landing Page
+      ↓
+Browse Courses
+      ↓
+Course Detail
+      ↓
+Register / Login
+      ↓
+Checkout
+      ↓
+Payment
+      ↓
+Payment Verification
+      ↓
+Course Access Granted
+      ↓
+Learning Dashboard
+      ↓
+Module
+      ↓
+Lesson
+      ↓
+YouTube Video
+      ↓
+Mark as Completed
+      ↓
+Progress Updated
+      ↓
+Next Lesson
+```
+
+---
+
+# 8. Information Architecture
+
+The application structure:
+
+```text
+/
+├── Home
+├── Courses
+│   ├── Course Detail
+│   └── Checkout
+│
+├── Login
+├── Register
+│
+├── Dashboard
+│   ├── My Courses
+│   ├── Continue Learning
+│   ├── Progress
+│   └── Profile
+│
+├── Learn
+│   └── Course
+│       ├── Module
+│       ├── Lesson
+│       └── Video
+│
+└── Admin
+    ├── Dashboard
+    ├── Courses
+    ├── Modules
+    ├── Lessons
+    ├── Users
+    ├── Orders
+    └── Settings
+```
+
+---
+
+# 9. Public Pages
+
+## 9.1 Landing Page
+
+**Goal:**
+
+Convert visitors into potential customers.
+
+### Hero Section
+
+Example:
+
+> **Learn Arabic Step by Step — From the Basics to Understanding Arabic Texts.**
+
+Primary CTA:
+
+**Start Learning**
+
+Secondary CTA:
+
+**Browse Courses**
+
+### Problem Section
+
+Example:
+
+> Confused about where to start learning Arabic?
+
+Highlight problems such as:
+
+* scattered learning materials,
+* unclear learning sequence,
+* difficulty tracking progress.
+
+### Solution Section
+
+> We organize Arabic learning materials into a structured curriculum so you don't have to search for random lessons across the internet.
+
+### Course Section
+
+Display available courses.
+
+### How It Works
+
+```text
+1. Register
+   ↓
+2. Choose a Course
+   ↓
+3. Pay
+   ↓
+4. Start Learning
+```
+
+### Testimonial Section
+
+Display student testimonials.
+
+### FAQ Section
+
+Potential questions:
+
+* Is the course suitable for beginners?
+* Are the videos hosted on YouTube?
+* How long will I have access to the course?
+* Will I receive a certificate?
+* What payment methods are available?
+
+---
+
+# 10. Course Catalog
+
+URL:
+
+```text
+/courses
+```
+
+Each course card displays:
+
+* Thumbnail.
+* Course title.
+* Short description.
+* Level.
+* Number of modules.
+* Number of lessons.
+* Price.
+* CTA button.
+
+### Filters
+
+```text
+Level
+
+├── Beginner
+├── Intermediate
+└── Advanced
+```
+
+---
+
+# 11. Course Detail Page
+
+URL:
+
+```text
+/courses/[courseSlug]
+```
+
+### Course Header
+
+Display:
+
+* Course title.
+* Description.
+* Instructor.
+* Level.
+* Duration.
+* Number of lessons.
+* Price.
+
+### Course Curriculum
+
+Example:
+
+```text
+Module 1 — Arabic Fundamentals
+    ├── Lesson 1 — Introduction to Arabic Sentences
+    ├── Lesson 2 — Ism
+    ├── Lesson 3 — Fi'il
+    └── Lesson 4 — Harf
+
+Module 2 — Mubtada' and Khabar
+    ├── Lesson 1
+    ├── Lesson 2
+    └── Lesson 3
+```
+
+Locked lessons should display:
+
+🔒 Locked
+
+Selected lessons can be made available as free previews.
+
+---
+
+# 12. Authentication
+
+Users can:
+
+* Register.
+* Login.
+* Logout.
+* Reset passwords.
+* Update their profile.
+
+User data:
+
+```text
+id
+name
+email
+avatar
+created_at
+updated_at
+```
+
+---
+
+# 13. Checkout
+
+URL:
+
+```text
+/checkout/[courseId]
+```
+
+Display:
+
+```text
+Course
+Price
+Discount
+Total
+Payment Method
+```
+
+CTA:
+
+**Pay Now**
+
+Payment flow:
+
+```text
+Payment Pending
+      ↓
+Payment Successful
+      ↓
+Course Access Granted
+```
+
+---
+
+# 14. Payment System
+
+For the MVP, the platform should use an established payment gateway instead of building its own payment-processing infrastructure.
+
+Potential payment gateways for Indonesia include:
+
+* Midtrans
+* Xendit
+* DOKU
+
+### Payment Flow
+
+```text
+User
+ ↓
+Checkout
+ ↓
+Create Order
+ ↓
+Payment Gateway
+ ↓
+User Completes Payment
+ ↓
+Webhook
+ ↓
+Backend
+ ↓
+Verify Payment
+ ↓
+Update Order
+ ↓
+Grant Course Access
+```
+
+**Critical requirement:**
+
+Course access must **not** be granted merely because the user was redirected back from the payment page.
+
+Access must be granted only after the backend verifies the payment through a trusted payment status or webhook.
+
+---
+
+# 15. Order System
+
+Possible transaction statuses:
+
+```text
+PENDING
+PAID
+FAILED
+EXPIRED
+CANCELLED
+REFUNDED
+```
+
+Order data:
+
+```text
+id
+user_id
+course_id
+amount
+payment_status
+payment_method
+gateway_transaction_id
+created_at
+paid_at
+```
+
+---
+
+# 16. Student Dashboard
+
+URL:
+
+```text
+/dashboard
+```
+
+### Continue Learning
+
+Example:
+
+> Nahwu Fundamentals
+> Lesson 12 of 30
+
+Progress:
+
+```text
+40%
+```
+
+CTA:
+
+**Continue Learning**
+
+### My Courses
+
+```text
+Nahwu Fundamentals       40%
+Shorof Fundamentals      72%
+Arabic 101               15%
+```
+
+---
+
+# 17. Learning Player
+
+This is one of the **core features** of the product.
+
+Example layout:
+
+```text
+┌──────────────────────────────────────┐
+│             YouTube Video            │
+│                                      │
+│                                      │
+└──────────────────────────────────────┘
+
+Lesson 12
+Lesson Title
+
+[Mark as Completed]
+
+────────────────────────
+
+Course Curriculum
+
+✓ Lesson 1
+✓ Lesson 2
+✓ Lesson 3
+→ Lesson 4
+🔒 Lesson 5
+```
+
+Videos are embedded using YouTube.
+
+Example:
+
+```text
+youtube.com/embed/VIDEO_ID
+```
+
+The platform does not need to host the video files itself.
+
+---
+
+# 18. Lesson Completion
+
+Users can click:
+
+**Mark as Completed**
+
+The backend stores:
+
+```text
+user_id
+lesson_id
+completed_at
+```
+
+Example:
+
+```text
+Completed Lessons
+-----------------
+10 / 25
+
+Progress
+40%
+```
+
+---
+
+# 19. Progress Tracking
+
+Basic progress formula:
+
+```text
+Progress =
+Completed Lessons / Total Lessons × 100%
+```
+
+Example:
+
+```text
+10 / 20 × 100 = 50%
+```
+
+Progress should be displayed on:
+
+* Dashboard.
+* Course page.
+* Lesson page.
+
+---
+
+# 20. Learning Path
+
+This is one of the most important product features.
+
+The platform should not simply become:
+
+> "A website containing locked YouTube videos."
+
+Instead, it should become:
+
+> **A structured Arabic learning system.**
+
+Example:
+
+```text
+LEVEL 1
+Arabic Fundamentals
+       ↓
+LEVEL 2
+Basic Nahwu
+       ↓
+LEVEL 3
+Basic Shorof
+       ↓
+LEVEL 4
+Arabic Text Reading
+       ↓
+LEVEL 5
+Qur'anic Arabic Comprehension
+```
+
+This gives the product significantly more value than simply selling access to videos.
+
+---
+
+# 21. Admin Dashboard
+
+URL:
+
+```text
+/admin
+```
+
+Dashboard metrics:
+
+```text
+Total Users
+1,250
+
+Active Students
+875
+
+Total Courses
+12
+
+Total Revenue
+Rp xxx.xxx.xxx
+```
+
+---
+
+# 22. Course Management
+
+Admins can create courses with:
+
+```text
+Title
+Slug
+Description
+Thumbnail
+Level
+Price
+Status
+```
+
+Course status:
+
+```text
+DRAFT
+PUBLISHED
+ARCHIVED
+```
+
+---
+
+# 23. Module Management
+
+Each course contains multiple modules.
+
+Example:
+
+```text
+Course
+│
+├── Module 1
+├── Module 2
+├── Module 3
+└── Module 4
+```
+
+Admins can:
+
+* Create modules.
+* Edit modules.
+* Delete modules.
+* Reorder modules.
+
+---
+
+# 24. Lesson Management
+
+Lesson data:
+
+```text
+Title
+Description
+YouTube Video ID
+Duration
+Order
+Is Preview
+Status
+```
+
+Example:
+
+```text
+Lesson:
+Introduction to Ism
+
+YouTube ID:
+abc123xyz
+
+Duration:
+12:35
+
+Preview:
+YES
+```
+
+---
+
+# 25. User Management
+
+Admins can view:
+
+```text
+Name
+Email
+Registration Date
+Purchased Courses
+Progress
+Status
+```
+
+Admin actions:
+
+* View users.
+* Suspend users.
+* View purchases.
+* View learning progress.
+
+---
+
+# 26. Transaction Management
+
+Admins can view:
+
+```text
+Order ID
+User
+Course
+Amount
+Status
+Payment Method
+Date
+```
+
+Filters:
+
+```text
+Pending
+Paid
+Failed
+Expired
+Refunded
+```
+
+---
+
+# 27. Database Design
+
+For a modern implementation, the recommended stack is:
+
+```text
+Next.js
++
+Supabase
++
+PostgreSQL
++
+Payment Gateway
++
+YouTube
+```
+
+Main database tables:
+
+```text
+users
+courses
+modules
+lessons
+enrollments
+lesson_progress
+orders
+payments
+```
+
+Relationships:
+
+```text
+USER
+ │
+ ├──────── ORDERS
+ │
+ ├──────── ENROLLMENTS
+ │                │
+ │                └──── COURSE
+ │
+ └──────── LESSON_PROGRESS
+
+COURSE
+ │
+ └── MODULE
+       │
+       └── LESSON
+```
+
+---
+
+# 28. Main Database Tables
+
+## courses
+
+```text
+id
+title
+slug
+description
+thumbnail_url
+level
+price
+status
+created_at
+updated_at
+```
+
+## modules
+
+```text
+id
+course_id
+title
+description
+order_index
+created_at
+updated_at
+```
+
+## lessons
+
+```text
+id
+module_id
+title
+description
+youtube_video_id
+duration
+order_index
+is_preview
+created_at
+updated_at
+```
+
+## enrollments
+
+```text
+id
+user_id
+course_id
+status
+enrolled_at
+expires_at
+```
+
+## lesson_progress
+
+```text
+id
+user_id
+lesson_id
+completed
+completed_at
+```
+
+## orders
+
+```text
+id
+user_id
+course_id
+order_number
+amount
+status
+created_at
+paid_at
+```
+
+---
+
+# 29. Access Control
+
+This is a critical requirement.
+
+A user must **not** be able to access a course simply by knowing the lesson URL.
+
+For example:
+
+```text
+/learn/nahwu-fundamentals/lesson-10
+```
+
+The backend must verify:
+
+```text
+Is the user authenticated?
+        ↓
+Does the user have an enrollment?
+        ↓
+Is the enrollment still valid?
+        ↓
+YES → Allow access
+NO  → Redirect to checkout/course page
+```
+
+Conceptually:
+
+```text
+User
+ ↓
+Authentication
+ ↓
+Authorization
+ ↓
+Enrollment
+ ↓
+Lesson Access
+```
+
+---
+
+# 30. Security Requirements
+
+## Authentication
+
+* Secure authentication.
+* Secure session management.
+* Email verification when necessary.
+
+## Authorization
+
+The server must validate:
+
+* user identity,
+* enrollment,
+* user role.
+
+## Payment Security
+
+Payment webhooks must be properly verified.
+
+## Admin Security
+
+Admin routes must use role-based access control.
+
+Example:
+
+```text
+role = admin
+```
+
+Only administrators can access:
+
+```text
+/admin/*
+```
+
+---
+
+# 31. YouTube Security Considerations
+
+Because the videos are hosted on YouTube, it is important to understand that:
+
+**YouTube embeds are not DRM.**
+
+Even if a video is set to:
+
+```text
+Unlisted
+```
+
+someone who obtains the video URL may potentially share it.
+
+Therefore, the product's value should not depend solely on:
+
+> "The video cannot be found on YouTube."
+
+Instead, the product should provide additional value through:
+
+* structured courses,
+* learning paths,
+* progress tracking,
+* exercises,
+* worksheets,
+* quizzes,
+* assessments,
+* community,
+* instructor feedback,
+* additional learning resources.
+
+---
+
+# 32. SEO Requirements
+
+Public pages should be optimized for search engines.
+
+Potential target keywords:
+
+```text
+learn Arabic
+learn Arabic online
+online Arabic course
+learn Nahwu
+learn Shorof
+online Nahwu course
+learn Arabic from zero
+```
+
+SEO-friendly pages:
+
+```text
+/
+ /courses
+ /courses/[slug]
+ /blog
+ /blog/[slug]
+```
+
+Authenticated learning pages do not need to be a primary SEO target.
+
+---
+
+# 33. Analytics
+
+The MVP should track at least:
+
+```text
+User Registered
+Course Viewed
+Checkout Started
+Payment Successful
+Course Started
+Lesson Viewed
+Lesson Completed
+Course Completed
+```
+
+### Key Metrics
+
+#### Conversion Rate
+
+```text
+Paid Users / Visitors
+```
+
+#### Course Completion Rate
+
+```text
+Users Completing Course /
+Users Purchasing Course
+```
+
+#### Lesson Completion Rate
+
+```text
+Completed Lessons /
+Total Lessons
+```
+
+---
+
+# 34. Business Model
+
+For the initial launch, a **one-time purchase per course** model is recommended because it is simpler to implement and easier for users to understand.
+
+Example:
+
+```text
+Nahwu Fundamentals
+Rp199,000
+
+Shorof Fundamentals
+Rp199,000
+
+Nahwu + Shorof Bundle
+Rp349,000
+```
+
+Later, a subscription model can be introduced.
+
+Example:
+
+```text
+Rp99,000 / month
+```
+
+With:
+
+```text
+Access to All Courses
+```
+
+---
+
+# 35. MVP Feature Priorities
+
+## P0 — Must Have
+
+The product cannot properly operate without these features:
+
+```text
+Authentication
+Course Catalog
+Course Detail
+Checkout
+Payment
+Payment Verification
+Course Enrollment
+YouTube Player
+Lesson Progress
+Student Dashboard
+Admin Dashboard
+Course CRUD
+Module CRUD
+Lesson CRUD
+```
+
+## P1 — Important
+
+After the MVP:
+
+```text
+Quiz
+Certificate
+Coupon
+Discount
+Course Preview
+Email Notifications
+Learning Statistics
+```
+
+## P2 — Future
+
+```text
+AI Tutor
+AI Conversation Practice
+Vocabulary Flashcards
+Spaced Repetition
+Community
+Live Classes
+Gamification
+Leaderboard
+Mobile App
+```
+
+---
+
+# 36. Recommended Technology Stack
+
+### Frontend
+
+**Next.js + TypeScript**
+
+### UI
+
+```text
+Tailwind CSS
+shadcn/ui
+```
+
+### Backend
+
+Next.js Server Actions / Route Handlers.
+
+### Database
+
+**Supabase PostgreSQL**
+
+### Authentication
+
+**Supabase Auth**
+
+### Video
+
+**YouTube Embed**
+
+### Payment
+
+For Indonesia:
+
+**Midtrans / Xendit**
+
+### Deployment
+
+**Vercel**
+
+### Storage
+
+**Supabase Storage**
+
+Suitable for:
+
+* course thumbnails,
+* worksheets,
+* PDFs,
+* avatars,
+* other assets.
+
+---
+
+# 37. High-Level Architecture
+
+```text
+                    USER
+                     │
+                     ▼
+                ┌─────────┐
+                │ Next.js │
+                └────┬────┘
+                     │
+          ┌──────────┼───────────┐
+          │          │           │
+          ▼          ▼           ▼
+       Supabase   Payment      YouTube
+       Auth/DB    Gateway       Embed
+          │          │
+          │          │
+          │       Webhook
+          │          │
+          └─────┬────┘
+                ▼
+          Access Control
+                │
+                ▼
+          Course Enrollment
+                │
+                ▼
+          Learning Platform
+```
+
+---
+
+# 38. User Roles
+
+The MVP only needs two roles:
+
+```text
+STUDENT
+ADMIN
+```
+
+## STUDENT
+
+Can:
+
+* Browse courses.
+* Purchase courses.
+* Access purchased courses.
+* Watch lessons.
+* Track learning progress.
+* Manage their profile.
+
+## ADMIN
+
+Can:
+
+* Manage courses.
+* Manage modules.
+* Manage lessons.
+* Manage users.
+* View transactions.
+* View analytics.
+
+---
+
+# 39. Main Acceptance Criteria
+
+## Purchase Flow
+
+**Given**
+
+The user does not own the course.
+
+**When**
+
+The user successfully completes payment.
+
+**Then**
+
+The system receives a valid payment webhook.
+
+**And**
+
+The order status becomes:
+
+```text
+PAID
+```
+
+**And**
+
+An enrollment record is created.
+
+**And**
+
+The user can access the course.
+
+---
+
+## Lesson Access
+
+**Given**
+
+The user does not have an active enrollment.
+
+**When**
+
+The user attempts to access a paid lesson.
+
+**Then**
+
+The system denies access.
+
+**And**
+
+The user is redirected to the course or checkout page.
+
+---
+
+## Progress Tracking
+
+**Given**
+
+The user is viewing a lesson.
+
+**When**
+
+The user clicks:
+
+> Mark as Completed
+
+**Then**
+
+The system stores the lesson progress.
+
+**And**
+
+The course progress is updated.
+
+---
+
+# 40. Admin Acceptance Criteria
+
+## Create Course
+
+The admin enters:
+
+```text
+Title
+Description
+Price
+Level
+Thumbnail
+```
+
+Then clicks:
+
+**Create Course**
+
+The course is saved with:
+
+```text
+DRAFT
+```
+
+The admin can then publish the course.
+
+Once published, the course becomes publicly available.
+
+---
+
+# 41. Development Roadmap
+
+## Phase 1 — Foundation
+
+```text
+Project Setup
+Database
+Authentication
+UI System
+Role System
+```
+
+## Phase 2 — Course Management
+
+```text
+Course CRUD
+Module CRUD
+Lesson CRUD
+YouTube Integration
+```
+
+## Phase 3 — Payment
+
+```text
+Checkout
+Order System
+Payment Gateway
+Webhook
+Enrollment
+```
+
+## Phase 4 — Learning Experience
+
+```text
+Student Dashboard
+Lesson Player
+Progress Tracking
+Continue Learning
+```
+
+## Phase 5 — Launch
+
+```text
+SEO
+Analytics
+Testing
+Security
+Performance Optimization
+Deployment
+```
+
+---
+
+# 42. Definition of Done — MVP
+
+The MVP is considered complete when:
+
+* [ ] Users can register.
+* [ ] Users can log in.
+* [ ] Users can browse courses.
+* [ ] Users can view course details.
+* [ ] Users can start checkout.
+* [ ] Users can complete payment.
+* [ ] The system receives payment webhooks.
+* [ ] The system verifies payments.
+* [ ] Enrollment is automatically created.
+* [ ] Users can access purchased courses.
+* [ ] Users can watch YouTube videos.
+* [ ] Users can complete lessons.
+* [ ] Progress is stored.
+* [ ] Users can resume their last lesson.
+* [ ] Admins can create courses.
+* [ ] Admins can create modules.
+* [ ] Admins can create lessons.
+* [ ] Admins can add YouTube Video IDs.
+* [ ] Admins can set course prices.
+* [ ] Admins can view transactions.
+* [ ] Admins can view users.
+* [ ] Access control works correctly.
+* [ ] The website is responsive.
+* [ ] Error handling is implemented.
+* [ ] The application is deployed to production.
+
+---
+
+# 43. Product KPIs
+
+At the beginning, avoid tracking too many metrics.
+
+Focus on these five:
+
+| KPI                       | Purpose                        |
+| ------------------------- | ------------------------------ |
+| Visitor → Registration    | Measure user interest          |
+| Registration → Purchase   | Measure conversion             |
+| Purchase → Course Start   | Measure activation             |
+| Course Start → Completion | Measure learning effectiveness |
+| Repeat Purchase           | Measure product value          |
+
+### Recommended North Star Metric
+
+> **Number of students who successfully complete meaningful learning outcomes.**
+
+The product should not optimize merely for the number of videos watched.
+
+---
+
+# 44. Core Product Principle
+
+The most important strategic principle is:
+
+**Do not build this product as "a website containing paid YouTube videos."**
+
+That would create relatively little defensible value and would be easy to replicate.
+
+Instead, build it as:
+
+> **An Arabic Language Learning Management System.**
+
+YouTube is simply the **video delivery mechanism**.
+
+The core value should come from:
+
+```text
+Video
+   +
+Curriculum
+   +
+Learning Path
+   +
+Progress Tracking
+   +
+Exercises
+   +
+Assessment
+   +
+Learning Resources
+   =
+Arabic Learning Platform
+```
+
+This positioning allows the product to eventually evolve from a **paid YouTube course platform** into a much more valuable **Arabic Learning LMS**.
+
+---
+
+# 45. Recommended Development Strategy
+
+If the application is going to be built using **Next.js + Supabase**, do not ask an AI coding assistant to generate the entire application in one prompt.
+
+Instead, break development into smaller technical phases:
+
+```text
+PRD
+ ↓
+Database Schema
+ ↓
+ERD
+ ↓
+Authentication
+ ↓
+Course Management
+ ↓
+Payment
+ ↓
+Enrollment & Authorization
+ ↓
+Learning Player
+ ↓
+Progress Tracking
+ ↓
+Student Dashboard
+ ↓
+Admin Dashboard
+ ↓
+Testing
+ ↓
+Deployment
+```
+
+The PRD above should serve as the **master product document**.
+
+Each phase can then have its own **Technical Specification** and **implementation prompt**.
