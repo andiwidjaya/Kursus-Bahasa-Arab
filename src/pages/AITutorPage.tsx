@@ -137,10 +137,10 @@ Silakan ajukan pertanyaan seputar tata bahasa Arab (Nahwu & Shorof), analisis I'
     setCustomApiKey(key);
     if (key.trim()) {
       localStorage.setItem('arabiyyah_gemini_api_key', key.trim());
-      showToast('Gemini API Key berhasil disimpan!', 'success');
+      showToast('Gemini API Key berhasil disimpan untuk Produksi!', 'success');
     } else {
       localStorage.removeItem('arabiyyah_gemini_api_key');
-      showToast('Menggunakan mode Local Smart RAG Fallback', 'info');
+      showToast('API Key dihapus. Pastikan VITE_GEMINI_API_KEY diatur di .env', 'info');
     }
     setIsApiKeyModalOpen(false);
   };
@@ -452,8 +452,8 @@ Silakan ajukan pertanyaan seputar tata bahasa Arab (Nahwu & Shorof), analisis I'
             </div>
             
             <p className="text-xs text-slate-400 leading-relaxed">
-              Anda dapat memasukkan **Google Gemini API Key** Anda sendiri untuk menghasilkan respon AI generatif online secara langsung.
-              Jika dikosongkan, aplikasi akan secara otomatis menggunakan **Smart Local RAG Synthesizer Engine** (offline/fallback mode).
+              Untuk lingkungan **Produksi**, masukkan **Google Gemini API Key** Anda agar Asisten AI dapat menghasilkan jawaban generatif cerdas berbasis acuan RAG platform.
+              API Key juga dapat diset langsung melalui environment variable <code className="text-amber-300">VITE_GEMINI_API_KEY</code> pada file <code className="text-amber-300">.env</code>.
             </p>
 
             <div>

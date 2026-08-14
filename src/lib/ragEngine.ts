@@ -75,7 +75,7 @@ export function retrieveRelevantContexts(query: string, data: KnowledgeData, lim
         fullContent: rule.content,
         relevanceScore: score,
         routeLink: {
-          route: 'vocab' // or general reference
+          route: 'vocab'
         },
         metadata: {
           category: rule.category,
@@ -183,7 +183,7 @@ export function retrieveRelevantContexts(query: string, data: KnowledgeData, lim
   // Sort by relevance score descending
   results.sort((a, b) => b.relevanceScore - a.relevanceScore);
 
-  // If no high match, fallback to top general grammar rules & beginner courses
+  // If no high match, default to general reference grammar rule
   if (results.length === 0) {
     const fallbackRule = ARABIC_KNOWLEDGE_BASE[0];
     results.push({
@@ -202,7 +202,7 @@ export function retrieveRelevantContexts(query: string, data: KnowledgeData, lim
 }
 
 /**
- * Generate AI Response using Gemini API or Smart Fallback RAG Synthesizer
+ * Generate Production AI Response using Gemini API
  */
 export async function generateRAGResponse(
   userQuery: string,
@@ -212,18 +212,31 @@ export async function generateRAGResponse(
   
   const apiKey = customApiKey || (import.meta.env.VITE_GEMINI_API_KEY as string) || '';
 
-  // Prepare context text snippet
+  if (!apiKey || apiKey.trim() === '') {
+    return {
+      text: `⚠️ **Gemini API Key Belum Dikonfigurasi**
+
+Untuk menggunakan fitur **Asisten AI Produksi**, harap masukkan Gemini API Key Anda:
+1. Klik tombol **Set Gemini Key** di bagian atas halaman ini (atau ikon kunci di widget).
+2. Atau tambahkan \`VITE_GEMINI_API_KEY=your_key_here\` di dalam file \`.env\` server/aplikasi Anda.
+
+ API Key dapat diperoleh gratis melalui [Google AI Studio](https://aistudio.google.com/).`,
+      citations: retrievedContexts,
+      suggestedFollowups: [
+        'Bagaimana cara mendapatkan Gemini API Key?',
+        'Apa saja kaidah Nahwu dasar yang ada di platform ini?'
+      ]
+    };
+  }
+
+  // Prepare context text snippet for RAG
   const contextSnippetText = retrievedContexts.map((ctx, idx) => 
     `[Sumber ${idx + 1}] (${ctx.title})\nKonteks: ${ctx.fullContent || ctx.snippet}`
   ).join('\n\n');
 
-  // Try calling Gemini API if API key is provided
-  if (apiKey && apiKey.trim() !== '') {
-    try {
-      const prompt = `Anda adalah "Asisten AI Arabiyyah Learning Platform", tutor bahasa Arab cerdas dan ramah.
-Jawablah pertanyaan berikut berdasarkan **Konteks RAG** yang diberikan di bawah ini.
-Jika teks konteks memberikan informasi yang relevan, sertakan penjelasan yang jelas, ramah, dan berikan contoh kalimat bahasa Arab lengkap dengan harakat.
-Jika pertanyaan adalah tentang rekomendasi kursus, sebutkan nama kursus secara spesifik.
+  try {
+    const prompt = `Anda adalah "Asisten AI Arabiyyah Learning Platform", tutor dan pengajar bahasa Arab profesional.
+Tugas Anda adalah memberikan jawaban yang akurat, ramah, terstruktur, dan edukatif berdasarkan **Konteks RAG** yang diberikan di bawah ini.
 
 Konteks Terkait dari Platform:
 ${contextSnippetText}
@@ -231,98 +244,61 @@ ${contextSnippetText}
 Pertanyaan Pengguna:
 ${userQuery}
 
-Tuliskan jawaban yang terstruktur rapi dengan poin-poin utama, penyorotan teks Arab, serta penjelasan bahasa Indonesia yang mudah dipahami.`;
+Instruksi Format Jawaban:
+1. Jawab langsung pertanyaan pengguna secara komprehensif.
+2. Setiap kali menyebutkan kata atau kalimat Bahasa Arab, selalu berikan harakat lengkap.
+3. Tuliskan analisis kedudukan kata (I'rab/Tashrif) atau penjelasan ringkas yang mudah dipahami santri.
+4. Bila pertanyaan berupa rekomendasi materi, sebutkan nama kursus atau pelajaran secara spesifik berdasarkan konteks RAG.`;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }]
-        })
-      });
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey.trim()}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }]
+      })
+    });
 
-      if (response.ok) {
-        const data = await response.json();
-        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (aiText) {
-          return {
-            text: aiText,
-            citations: retrievedContexts,
-            suggestedFollowups: generateSuggestedFollowups(userQuery)
-          };
-        }
-      }
-    } catch (err) {
-      console.warn('Gemini API call failed, switching to Smart Local RAG Synthesizer:', err);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errorMsg = errorData.error?.message || response.statusText;
+      return {
+        text: `❌ **Gagal Memanggil Gemini API (${response.status})**
+
+Pesan Kesalahan: ${errorMsg}
+
+Mohon periksa kembali apakah Gemini API Key yang Anda masukkan valid dan memiliki kuota yang mencukupi.`,
+        citations: retrievedContexts,
+        suggestedFollowups: generateSuggestedFollowups(userQuery)
+      };
     }
+
+    const data = await response.json();
+    const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (aiText) {
+      return {
+        text: aiText,
+        citations: retrievedContexts,
+        suggestedFollowups: generateSuggestedFollowups(userQuery)
+      };
+    }
+
+    return {
+      text: 'Maaf, tidak ada respon teks yang dihasilkan oleh model AI.',
+      citations: retrievedContexts,
+      suggestedFollowups: generateSuggestedFollowups(userQuery)
+    };
+
+  } catch (err: any) {
+    return {
+      text: `❌ **Terjadi Kesalahan Koneksi AI**
+
+Gagal terhubung ke layanan Google Gemini API: ${err?.message || 'Network error'}.
+Pastikan koneksi internet Anda stabil.`,
+      citations: retrievedContexts,
+      suggestedFollowups: generateSuggestedFollowups(userQuery)
+    };
   }
-
-  // Fallback: Smart Local RAG Response Synthesizer
-  const fallbackResponse = synthesizeLocalRAGResponse(userQuery, retrievedContexts);
-  return {
-    text: fallbackResponse,
-    citations: retrievedContexts,
-    suggestedFollowups: generateSuggestedFollowups(userQuery)
-  };
-}
-
-/**
- * Smart Local RAG Synthesizer when offline or API key isn't configured
- */
-function synthesizeLocalRAGResponse(query: string, contexts: RAGContextItem[]): string {
-  const qLower = query.toLowerCase();
-
-  let intro = `Berdasarkan basis pengetahuan **Arabiyyah Learning Platform** (RAG Retrieval), berikut penjelasan lengkap untuk pertanyaan Anda:`;
-
-  if (contexts.length === 0) {
-    return `Bahasa Arab adalah bahasa yang kaya akan kaidah tata bahasa (Nahwu & Shorof). 
-Untuk pertanyaan "${query}", kami merekomendasikan Anda untuk memulai dari modul dasar Nahwu Fundamentals atau mempelajari daftar Mufradat di platform kami.`;
-  }
-
-  const primaryContext = contexts[0];
-  let mainBody = ``;
-
-  if (primaryContext.sourceType === 'GRAMMAR_RULE') {
-    mainBody = `### 📌 Kaidah & Konsep Utama
-${primaryContext.fullContent || primaryContext.snippet}
-
-> **Tips Belajar:** Kuasai materi ini sebelum melangkah ke analisis I'rab kalimat yang lebih kompleks!`;
-  } else if (primaryContext.sourceType === 'COURSE') {
-    mainBody = `### 📚 Rekomendasi Kursus Terkait
-Kami menemukan kursus yang sangat relevan dengan pertanyaan Anda:
-**${primaryContext.title}**
-
-*Deskripsi:* ${primaryContext.snippet}
-*Tingkat:* ${primaryContext.metadata?.level || 'Pemula'}
-*Kategori:* ${primaryContext.metadata?.category || 'Umum'}
-
-Anda dapat langsung mengambil kursus ini untuk mempelajari topik ini secara terstruktur dengan video & kuis interaktif.`;
-  } else if (primaryContext.sourceType === 'VOCAB') {
-    mainBody = `### 📖 Kosakata & Mufradat Terkait
-${primaryContext.snippet}
-
-Bahasa Arab sangat mengandalkan pembentukan akar kata. Pastikan Anda melatih pengucapan dan menghafal bentuk mufrod & jamak dari kosakata tersebut!`;
-  } else if (primaryContext.sourceType === 'LESSON') {
-    mainBody = `### 🎬 Pelajaran Terkait dalam Kursus
-Materi ini dibahas secara detail dalam video **${primaryContext.title}**.
-
-*Rangkuman Pelajaran:*
-${primaryContext.snippet}`;
-  } else {
-    mainBody = `### 📝 Referensi Terkait
-**${primaryContext.title}**
-${primaryContext.snippet}`;
-  }
-
-  // Combine top contexts summary
-  let additionalContextsSummary = '';
-  if (contexts.length > 1) {
-    additionalContextsSummary = `\n\n### 🔗 Sumber Rujukan Tambahan:\n` + 
-      contexts.slice(1).map((c, i) => `${i + 2}. **${c.title}** — ${c.snippet.substring(0, 100)}...`).join('\n');
-  }
-
-  return `${intro}\n\n${mainBody}${additionalContextsSummary}\n\n---
-*💡 Catatan RAG: Anda dapat mengklik kartu sitasi di bawah ini untuk membuka halaman materi atau kursus terkait secara langsung.*`;
 }
 
 /**
