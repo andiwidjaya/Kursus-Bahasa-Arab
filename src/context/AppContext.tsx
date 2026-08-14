@@ -372,7 +372,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         name: name || email.split('@')[0],
         email,
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
-        role: 'STUDENT',
+        role: email.toLowerCase().includes('admin') ? 'ADMIN' : 'STUDENT',
         created_at: new Date().toISOString()
       };
       login(newU);
@@ -398,7 +398,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           name: name || email.split('@')[0],
           email,
           avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
-          role: 'STUDENT',
+          role: email.toLowerCase().includes('admin') ? 'ADMIN' : 'STUDENT',
           created_at: new Date().toISOString()
         };
 
