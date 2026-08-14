@@ -181,6 +181,14 @@ export const LearningPlayerPage: React.FC = () => {
                 </button>
 
                 <button
+                  onClick={() => navigateTo('ai-tutor')}
+                  className="px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 border border-emerald-400/30 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md"
+                >
+                  <Sparkles className="w-4 h-4 text-emerald-300" />
+                  Tanya Asisten AI (RAG)
+                </button>
+
+                <button
                   onClick={() => toggleLessonCompleted(activeLesson.id, course.id)}
                   className={`px-5 py-3 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 shrink-0 shadow-md ${
                     isCompleted

@@ -95,6 +95,19 @@ export const Navbar: React.FC = () => {
               Blog & Edukasi
             </button>
 
+            <button
+              onClick={() => navigateTo('ai-tutor')}
+              className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                currentRoute === 'ai-tutor'
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold' 
+                  : 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-900/80 hover:text-white'
+              }`}
+            >
+              <Sparkles className="w-4 h-4 text-emerald-400 animate-pulse" />
+              <span>Asisten AI</span>
+              <span className="text-[10px] bg-emerald-500 text-slate-950 font-bold px-1.5 py-0.2 rounded-full">RAG</span>
+            </button>
+
             {currentUser && (
               <button
                 onClick={() => navigateTo('dashboard')}

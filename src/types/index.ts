@@ -148,3 +148,46 @@ export interface LessonComment {
   text: string;
   created_at: string;
 }
+
+// AI & RAG Feature Types
+export type KnowledgeSourceType = 'COURSE' | 'LESSON' | 'VOCAB' | 'BLOG' | 'GRAMMAR_RULE' | 'QUIZ';
+
+export interface RAGContextItem {
+  id: string;
+  sourceType: KnowledgeSourceType;
+  title: string;
+  snippet: string;
+  fullContent?: string;
+  relevanceScore: number;
+  routeLink: {
+    route: 'course-detail' | 'learn' | 'vocab' | 'blog-detail';
+    params?: {
+      courseId?: string;
+      lessonId?: string;
+      blogSlug?: string;
+    };
+  };
+  metadata?: {
+    category?: string;
+    level?: string;
+    arabicText?: string;
+  };
+}
+
+export interface ChatMessage {
+  id: string;
+  sender: 'user' | 'ai';
+  text: string;
+  timestamp: string;
+  citations?: RAGContextItem[];
+  suggestedFollowups?: string[];
+  isError?: boolean;
+}
+
+export interface AIChatState {
+  messages: ChatMessage[];
+  isLoading: boolean;
+  activeTopicFilter: 'ALL' | 'NAHWU_SHOROF' | 'VOCAB' | 'COURSES' | 'BLOG';
+  customApiKey?: string;
+}
+

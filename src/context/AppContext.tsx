@@ -19,7 +19,7 @@ import {
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { verifyAndFulfillOrder } from '../lib/payment';
 
-export type PageRoute = 'home' | 'courses' | 'course-detail' | 'checkout' | 'dashboard' | 'learn' | 'admin' | 'vocab' | 'blog' | 'blog-detail' | 'profile';
+export type PageRoute = 'home' | 'courses' | 'course-detail' | 'checkout' | 'dashboard' | 'learn' | 'admin' | 'vocab' | 'blog' | 'blog-detail' | 'profile' | 'ai-tutor';
 
 interface ToastInfo {
   id: string;

@@ -16,6 +16,8 @@ import { BlogListPage } from './pages/BlogListPage';
 import { BlogDetailPage } from './pages/BlogDetailPage';
 import { VocabPage } from './pages/VocabPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { AITutorPage } from './pages/AITutorPage';
+import { AIAssistantDrawer } from './components/AIAssistantDrawer';
 
 const MainContent: React.FC = () => {
   const { currentRoute } = useApp();
@@ -44,6 +46,8 @@ const MainContent: React.FC = () => {
         return <VocabPage />;
       case 'profile':
         return <ProfilePage />;
+      case 'ai-tutor':
+        return <AITutorPage />;
       default:
         return <HomePage />;
     }
@@ -61,6 +65,7 @@ const MainContent: React.FC = () => {
 
       {!isImmersivePlayer && <Footer />}
 
+      <AIAssistantDrawer />
       <AuthModal />
       <ToastContainer />
     </div>
