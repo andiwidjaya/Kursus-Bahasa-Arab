@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { BookOpen, Shield, LogOut, ChevronDown, Sparkles, LayoutDashboard, Compass } from 'lucide-react';
+import { BookOpen, Shield, LogOut, ChevronDown, Sparkles, LayoutDashboard, Compass, Languages, User as UserIcon } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { 
@@ -57,6 +57,18 @@ export const Navbar: React.FC = () => {
               }`}
             >
               Katalog Kursus
+            </button>
+
+            <button
+              onClick={() => navigateTo('vocab')}
+              className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                currentRoute === 'vocab'
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+              }`}
+            >
+              <Languages className="w-4 h-4 text-emerald-400" />
+              Kamus Vocab
             </button>
 
             <button
@@ -180,6 +192,17 @@ export const Navbar: React.FC = () => {
                     >
                       <LayoutDashboard className="w-4 h-4 text-emerald-400" />
                       Dashboard Kursus Saya
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                        navigateTo('profile');
+                      }}
+                      className="w-full text-left px-4 py-2 text-xs text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-2"
+                    >
+                      <UserIcon className="w-4 h-4 text-emerald-400" />
+                      Profil Saya & Pengaturan
                     </button>
 
                     {currentUser.role === 'ADMIN' && (

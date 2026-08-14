@@ -1,6 +1,6 @@
 import React from 'react';
 import { Course, User } from '../types';
-import { Award, X, Download, CheckCircle2 } from 'lucide-react';
+import { Award, X, Download, CheckCircle2, Printer } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface CertificateModalProps {
@@ -12,21 +12,29 @@ interface CertificateModalProps {
 export const CertificateModal: React.FC<CertificateModalProps> = ({ course, user, onClose }) => {
   React.useEffect(() => {
     // Trigger confetti upon completion certificate view!
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 }
-    });
+    try {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    } catch (e) {
+      console.log('Confetti effect trigger', e);
+    }
   }, []);
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in">
-      <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-amber-200/80 animate-in zoom-in-95">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in print:p-0 print:bg-white print:static">
+      <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-amber-200/80 animate-in zoom-in-95 print:shadow-none print:border-none print:max-w-none">
         
-        {/* Close button */}
+        {/* Close button (Hidden during print) */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+          className="absolute top-4 right-4 z-20 p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors print:hidden"
         >
           <X className="w-5 h-5" />
         </button>
@@ -39,7 +47,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({ course, user
             <Award className="w-9 h-9" />
           </div>
 
-          <p className="font-arabic text-amber-600 text-xl font-bold mb-1">شهادة إتمام</p>
+          <p className="font-arabic text-amber-600 text-2xl font-bold mb-1">شهادة إتمام</p>
           <h2 className="text-xs font-bold text-amber-700 tracking-widest uppercase mb-6">
             SERTIFIKAT KELULUSAN KURSUS
           </h2>
@@ -73,15 +81,15 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({ course, user
 
         </div>
 
-        {/* Action Controls */}
-        <div className="p-4 bg-slate-900 flex justify-between items-center px-8">
+        {/* Action Controls (Hidden during print) */}
+        <div className="p-4 bg-slate-900 flex flex-wrap justify-between items-center px-8 gap-3 print:hidden">
           <span className="text-xs text-slate-400 font-medium">ID Sertifikat: ARB-CERT-{Math.floor(100000 + Math.random() * 900000)}</span>
           <div className="flex gap-2">
             <button
-              onClick={() => alert('Sertifikat PDF sedang diunduh...')}
+              onClick={handlePrint}
               className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-slate-950 hover:bg-amber-400 transition-colors flex items-center gap-1.5 shadow"
             >
-              <Download className="w-4 h-4" /> Unduh PDF
+              <Printer className="w-4 h-4" /> Cetak / Unduh PDF
             </button>
             <button
               onClick={onClose}

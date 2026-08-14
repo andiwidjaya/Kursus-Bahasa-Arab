@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   CheckCircle2, Play, Lock, ChevronLeft, ChevronRight, Download, 
-  FileText, ArrowLeft, ShieldAlert, Sparkles, BookOpen, Layers, Menu, X 
+  FileText, ArrowLeft, ShieldAlert, Sparkles, BookOpen, Layers, Menu, X, HelpCircle 
 } from 'lucide-react';
 import { Lesson } from '../types';
+import { QuizModal } from '../components/QuizModal';
 
 export const LearningPlayerPage: React.FC = () => {
   const { 
@@ -13,18 +14,21 @@ export const LearningPlayerPage: React.FC = () => {
     courses, 
     modules, 
     lessons, 
+    quizzes,
     hasAccess, 
     isLessonCompleted, 
     toggleLessonCompleted, 
     getCourseProgress, 
     navigateTo, 
     currentUser, 
-    openAuthModal 
+    openAuthModal,
+    showToast 
   } = useApp();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<'notes' | 'worksheet' | 'mynotes'>('notes');
   const [myNotesText, setMyNotesText] = useState('');
+  const [isQuizOpen, setIsQuizOpen] = useState(false);
 
   const course = courses.find(c => c.id === selectedCourseId) || courses[0];
   const courseModules = modules.filter(m => m.course_id === course.id).sort((a, b) => a.order_index - b.order_index);
@@ -45,6 +49,10 @@ export const LearningPlayerPage: React.FC = () => {
     order_index: 1,
     is_preview: true
   };
+
+  // Find quizzes matching this lesson or fallback to course quizzes
+  const lessonQuizzes = quizzes.filter(q => q.lesson_id === activeLesson.id);
+  const availableQuizzes = lessonQuizzes.length > 0 ? lessonQuizzes : quizzes;
 
   const isCompleted = isLessonCompleted(activeLesson.id);
   const progressPercent = getCourseProgress(course.id);
@@ -162,18 +170,28 @@ export const LearningPlayerPage: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-0.5">{activeLesson.description}</p>
               </div>
 
-              {/* Mark as Completed Toggle Button (PRD §18) */}
-              <button
-                onClick={() => toggleLessonCompleted(activeLesson.id, course.id)}
-                className={`px-5 py-3 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 shrink-0 shadow-md ${
-                  isCompleted
-                    ? 'bg-emerald-500 text-slate-950 hover:bg-emerald-400'
-                    : 'bg-slate-800 text-white hover:bg-slate-700 border border-slate-700'
-                }`}
-              >
-                <CheckCircle2 className={`w-4 h-4 ${isCompleted ? 'fill-slate-950 text-emerald-500' : 'text-slate-400'}`} />
-                {isCompleted ? 'Selesai (Completed)' : 'Tandai Selesai'}
-              </button>
+              {/* Action Buttons: Mark Completed & Start Quiz */}
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => setIsQuizOpen(true)}
+                  className="px-4 py-3 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md"
+                >
+                  <HelpCircle className="w-4 h-4 text-amber-400" />
+                  Mulai Kuis Pelajaran
+                </button>
+
+                <button
+                  onClick={() => toggleLessonCompleted(activeLesson.id, course.id)}
+                  className={`px-5 py-3 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 shrink-0 shadow-md ${
+                    isCompleted
+                      ? 'bg-emerald-500 text-slate-950 hover:bg-emerald-400'
+                      : 'bg-slate-800 text-white hover:bg-slate-700 border border-slate-700'
+                  }`}
+                >
+                  <CheckCircle2 className={`w-4 h-4 ${isCompleted ? 'fill-slate-950 text-emerald-500' : 'text-slate-400'}`} />
+                  {isCompleted ? 'Selesai (Completed)' : 'Tandai Selesai'}
+                </button>
+              </div>
             </div>
 
             {/* Prev / Next Navigation Buttons */}
@@ -346,6 +364,17 @@ export const LearningPlayerPage: React.FC = () => {
         )}
 
       </div>
+
+      {/* Interactive Quiz Modal */}
+      <QuizModal
+        isOpen={isQuizOpen}
+        onClose={() => setIsQuizOpen(false)}
+        quizzes={availableQuizzes}
+        lessonTitle={activeLesson.title}
+        onCompleteQuiz={() => {
+          showToast('Selamat! Kuis telah berhasil diselesaikan.', 'success');
+        }}
+      />
     </div>
   );
 };
