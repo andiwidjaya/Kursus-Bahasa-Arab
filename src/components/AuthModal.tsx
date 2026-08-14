@@ -72,13 +72,6 @@ export const AuthModal: React.FC = () => {
     }
   };
 
-  const handleQuickLogin = (role: 'STUDENT' | 'ADMIN') => {
-    const user = INITIAL_USERS.find(u => u.role === role);
-    if (user) {
-      login(user);
-    }
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in">
       <div 
@@ -148,40 +141,7 @@ export const AuthModal: React.FC = () => {
             </div>
           )}
 
-          {/* Preset Quick Logins */}
-          {tab !== 'forgot' && (
-            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-2">
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center">
-                ⚡ Akun Demo Instan (Sekali Klik)
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleQuickLogin('STUDENT')}
-                  className="py-2 px-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 border border-emerald-500/20 text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                  Demo Siswa
-                </button>
 
-                <button
-                  type="button"
-                  onClick={() => handleQuickLogin('ADMIN')}
-                  className="py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 border border-amber-500/20 text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
-                >
-                  <Shield className="w-3.5 h-3.5 text-amber-600" />
-                  Demo Admin
-                </button>
-              </div>
-            </div>
-          )}
-
-          {tab !== 'forgot' && (
-            <div className="relative flex items-center justify-center">
-              <div className="border-t border-slate-200 w-full"></div>
-              <span className="bg-white px-3 text-[11px] font-semibold text-slate-400 uppercase">atau Supabase Auth</span>
-            </div>
-          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-3.5">

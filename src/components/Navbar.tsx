@@ -137,33 +137,8 @@ export const Navbar: React.FC = () => {
             )}
           </nav>
 
-          {/* User Controls & Role Switcher */}
+          {/* User Controls */}
           <div className="flex items-center gap-3">
-
-            {/* Quick Demo Role Switcher Pill */}
-            <div className="hidden sm:flex items-center bg-slate-800/90 p-1 rounded-full border border-slate-700/80 text-xs">
-              <span className="px-2 text-slate-400 font-medium">Demo Mode:</span>
-              <button
-                onClick={() => switchUserRole('STUDENT')}
-                className={`px-2.5 py-1 rounded-full font-medium transition-all ${
-                  currentUser?.role === 'STUDENT'
-                    ? 'bg-emerald-500 text-slate-950 font-semibold shadow'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                Siswa
-              </button>
-              <button
-                onClick={() => switchUserRole('ADMIN')}
-                className={`px-2.5 py-1 rounded-full font-medium transition-all ${
-                  currentUser?.role === 'ADMIN'
-                    ? 'bg-amber-500 text-slate-950 font-semibold shadow'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                Admin
-              </button>
-            </div>
 
             {currentUser ? (
               <div className="relative">

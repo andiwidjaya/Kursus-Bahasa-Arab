@@ -117,8 +117,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const saved = localStorage.getItem('arabiyyah_users');
     return saved ? JSON.parse(saved) : INITIAL_USERS;
   });
-  const [currentUser, setCurrentUser] = useState<User | null>(users[0] || INITIAL_USERS[0]);
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('arabiyyah_current_user');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('arabiyyah_current_user', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('arabiyyah_current_user');
+    }
+  }, [currentUser]);
 
   // Data Collections with LocalStorage caching
   const [courses, setCourses] = useState<Course[]>(() => {

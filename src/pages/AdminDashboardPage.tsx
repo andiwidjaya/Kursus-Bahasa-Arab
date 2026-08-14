@@ -14,6 +14,7 @@ export const AdminDashboardPage: React.FC = () => {
   const { 
     currentUser,
     navigateTo,
+    openAuthModal,
     switchUserRole,
     courses, 
     modules, 
@@ -64,10 +65,10 @@ export const AdminDashboardPage: React.FC = () => {
             Kembali ke Beranda
           </button>
           <button
-            onClick={() => switchUserRole('ADMIN')}
+            onClick={openAuthModal}
             className="px-6 py-3 rounded-xl text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 transition-colors shadow-md shadow-amber-500/20"
           >
-            ⚡ Masuk Peran Demo Admin
+            Masuk Akun Admin
           </button>
         </div>
       </div>
