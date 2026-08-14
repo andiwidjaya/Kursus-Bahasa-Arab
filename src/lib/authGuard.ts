@@ -71,3 +71,18 @@ export const checkAdminAuthorization = (user: User | null): AuthorizationResult 
 
   return { allowed: true };
 };
+
+/**
+ * Strict Admin Email Whitelist Enforcement
+ * Validates if an email is authorized to receive ADMIN role.
+ * Production Security (§30): Prevents arbitrary email addresses from elevating to ADMIN.
+ */
+export const isAllowedAdminEmail = (email: string): boolean => {
+  if (!email || !email.trim()) return false;
+  const configured = (import.meta.env.VITE_ADMIN_EMAILS as string) || 'admin@arabiyyah.com';
+  const allowedList = configured
+    .split(',')
+    .map(e => e.trim().toLowerCase())
+    .filter(Boolean);
+  return allowedList.includes(email.trim().toLowerCase());
+};

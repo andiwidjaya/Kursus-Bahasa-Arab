@@ -18,6 +18,7 @@ import {
 } from '../data/mockData';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { verifyAndFulfillOrder } from '../lib/payment';
+import { isAllowedAdminEmail } from '../lib/authGuard';
 
 export type PageRoute = 'home' | 'courses' | 'course-detail' | 'checkout' | 'dashboard' | 'learn' | 'admin' | 'vocab' | 'blog' | 'blog-detail' | 'profile' | 'ai-tutor';
 
@@ -224,12 +225,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const authEmail = session.user.email || '';
           const authName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || authEmail.split('@')[0];
           
+          // Check DB role or whitelist
+          let userRole: 'STUDENT' | 'ADMIN' = isAllowedAdminEmail(authEmail) ? 'ADMIN' : 'STUDENT';
+          try {
+            const { data: dbUser } = await supabase.from('users').select('role').eq('email', authEmail).maybeSingle();
+            if (dbUser?.role === 'ADMIN') userRole = 'ADMIN';
+          } catch (e) { /* ignore */ }
+
           const appUser: User = {
             id: session.user.id,
             name: authName,
             email: authEmail,
             avatar: session.user.user_metadata?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
-            role: authEmail.includes('admin') ? 'ADMIN' : 'STUDENT',
+            role: userRole,
             created_at: session.user.created_at || new Date().toISOString()
           };
           
@@ -346,12 +354,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
 
       if (data.user) {
+        let userRole: 'STUDENT' | 'ADMIN' = isAllowedAdminEmail(email) ? 'ADMIN' : 'STUDENT';
+        try {
+          const { data: dbUser } = await supabase.from('users').select('role').eq('email', email).maybeSingle();
+          if (dbUser?.role === 'ADMIN') userRole = 'ADMIN';
+        } catch (e) { /* ignore */ }
+
         const authUser: User = {
           id: data.user.id,
           name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
           email: data.user.email || email,
           avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
-          role: email.includes('admin') ? 'ADMIN' : 'STUDENT',
+          role: userRole,
           created_at: data.user.created_at || new Date().toISOString()
         };
         setCurrentUser(authUser);
@@ -372,7 +386,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         name: name || email.split('@')[0],
         email,
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
-        role: email.toLowerCase().includes('admin') ? 'ADMIN' : 'STUDENT',
+        role: isAllowedAdminEmail(email) ? 'ADMIN' : 'STUDENT',
         created_at: new Date().toISOString()
       };
       login(newU);
@@ -398,7 +412,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           name: name || email.split('@')[0],
           email,
           avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
-          role: email.toLowerCase().includes('admin') ? 'ADMIN' : 'STUDENT',
+          role: isAllowedAdminEmail(email) ? 'ADMIN' : 'STUDENT',
           created_at: new Date().toISOString()
         };
 
