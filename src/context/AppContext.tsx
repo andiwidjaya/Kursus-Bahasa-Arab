@@ -90,6 +90,10 @@ interface AppContextType {
   updateLesson: (id: string, updatedLesson: Partial<Lesson>) => void;
   deleteLesson: (id: string) => void;
 
+  createVocabItem: (newVocabData: Omit<VocabItem, 'id'>) => void;
+  updateVocabItem: (id: string, updatedFields: Partial<VocabItem>) => void;
+  deleteVocabItem: (id: string) => void;
+
   updateOrderPaymentStatus: (orderId: string, status: Order['payment_status']) => void;
 
   // Toast
@@ -736,6 +740,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast('Pelajaran berhasil dihapus.', 'info');
   };
 
+  const createVocabItem = (newVocabData: Omit<VocabItem, 'id'>) => {
+    const newItem: VocabItem = {
+      ...newVocabData,
+      id: `voc-${Date.now()}`
+    };
+    setVocabItems(prev => [newItem, ...prev]);
+
+    if (isSupabaseConfigured) {
+      supabase.from('vocab_items').insert([newItem]).then(({ error }) => {
+        if (error) console.error('Supabase Create Vocab Error:', error);
+      });
+    }
+
+    showToast('Kosakata baru berhasil ditambahkan! 📚', 'success');
+  };
+
+  const updateVocabItem = (id: string, updatedFields: Partial<VocabItem>) => {
+    setVocabItems(prev => prev.map(v => v.id === id ? { ...v, ...updatedFields } : v));
+
+    if (isSupabaseConfigured) {
+      supabase.from('vocab_items').update(updatedFields).eq('id', id).then(({ error }) => {
+        if (error) console.error('Supabase Update Vocab Error:', error);
+      });
+    }
+
+    showToast('Data kosakata berhasil diperbarui.', 'success');
+  };
+
+  const deleteVocabItem = (id: string) => {
+    setVocabItems(prev => prev.filter(v => v.id !== id));
+
+    if (isSupabaseConfigured) {
+      supabase.from('vocab_items').delete().eq('id', id).then(({ error }) => {
+        if (error) console.error('Supabase Delete Vocab Error:', error);
+      });
+    }
+
+    showToast('Kosakata berhasil dihapus.', 'info');
+  };
+
   const updateOrderPaymentStatus = (orderId: string, status: Order['payment_status']) => {
     const targetOrder = orders.find(o => o.id === orderId);
     if (!targetOrder) return;
@@ -846,6 +890,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         createLesson,
         updateLesson,
         deleteLesson,
+        createVocabItem,
+        updateVocabItem,
+        deleteVocabItem,
         updateOrderPaymentStatus,
         toasts,
         showToast,
