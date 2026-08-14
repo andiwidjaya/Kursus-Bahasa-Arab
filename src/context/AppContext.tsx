@@ -17,8 +17,9 @@ import {
   INITIAL_LESSON_COMMENTS
 } from '../data/mockData';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { verifyAndFulfillOrder } from '../lib/payment';
 
-export type PageRoute = 'home' | 'courses' | 'course-detail' | 'checkout' | 'dashboard' | 'learn' | 'admin' | 'vocab' | 'blog' | 'profile';
+export type PageRoute = 'home' | 'courses' | 'course-detail' | 'checkout' | 'dashboard' | 'learn' | 'admin' | 'vocab' | 'blog' | 'blog-detail' | 'profile';
 
 interface ToastInfo {
   id: string;
@@ -48,6 +49,9 @@ interface AppContextType {
   closeAuthModal: () => void;
   login: (user: User) => void;
   logout: () => void;
+  loginWithSupabase: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
+  signUpWithSupabase: (email: string, pass: string, name: string) => Promise<{ success: boolean; error?: string }>;
+  resetPasswordWithSupabase: (email: string) => Promise<{ success: boolean; error?: string }>;
   updateUserRole: (userId: string, role: 'STUDENT' | 'ADMIN') => void;
   updateUserProfile: (updatedFields: Partial<User>) => void;
 
@@ -70,6 +74,7 @@ interface AppContextType {
   toggleLessonCompleted: (lessonId: string, courseId: string) => void;
   createOrderAndCheckout: (courseId: string, paymentMethod: PaymentMethod) => Order;
   simulatePaymentSuccess: (orderId: string) => void;
+  verifyPaymentAndFulfillOrder: (orderId: string) => Promise<boolean>;
   addLessonComment: (lessonId: string, text: string) => void;
 
   // Admin Methods
@@ -193,10 +198,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  // Fetch initial data on mount
+  // Fetch initial data on mount & listen to Supabase Auth session changes
   useEffect(() => {
     if (isSupabaseConfigured) {
       refreshFromSupabase();
+
+      // Listen for Supabase Auth state changes
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (session?.user) {
+          const authEmail = session.user.email || '';
+          const authName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || authEmail.split('@')[0];
+          
+          const appUser: User = {
+            id: session.user.id,
+            name: authName,
+            email: authEmail,
+            avatar: session.user.user_metadata?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
+            role: authEmail.includes('admin') ? 'ADMIN' : 'STUDENT',
+            created_at: session.user.created_at || new Date().toISOString()
+          };
+          
+          setCurrentUser(appUser);
+          
+          // Upsert into Supabase users table if connected
+          try {
+            await supabase.from('users').upsert([appUser], { onConflict: 'email' });
+          } catch (e) {
+            console.warn('Upsert user table warning:', e);
+          }
+        }
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
     }
   }, []);
 
@@ -265,7 +300,124 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast(`Selamat datang kembali, ${user.name}!`, 'success');
   };
 
-  const logout = () => {
+  const loginWithSupabase = async (email: string, pass: string): Promise<{ success: boolean; error?: string }> => {
+    if (!isSupabaseConfigured) {
+      // Local fallback
+      const found = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+      if (found) {
+        login(found);
+        return { success: true };
+      }
+      const newU: User = {
+        id: `user-${Date.now()}`,
+        name: email.split('@')[0],
+        email,
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
+        role: 'STUDENT',
+        created_at: new Date().toISOString()
+      };
+      login(newU);
+      return { success: true };
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password: pass
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      if (data.user) {
+        const authUser: User = {
+          id: data.user.id,
+          name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
+          email: data.user.email || email,
+          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
+          role: email.includes('admin') ? 'ADMIN' : 'STUDENT',
+          created_at: data.user.created_at || new Date().toISOString()
+        };
+        setCurrentUser(authUser);
+        closeAuthModal();
+        showToast(`Berhasil masuk! Selamat datang ${authUser.name}`, 'success');
+        return { success: true };
+      }
+      return { success: false, error: 'User data not returned' };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Terjadi kesalahan sistem auth' };
+    }
+  };
+
+  const signUpWithSupabase = async (email: string, pass: string, name: string): Promise<{ success: boolean; error?: string }> => {
+    if (!isSupabaseConfigured) {
+      const newU: User = {
+        id: `user-${Date.now()}`,
+        name: name || email.split('@')[0],
+        email,
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
+        role: 'STUDENT',
+        created_at: new Date().toISOString()
+      };
+      login(newU);
+      return { success: true };
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password: pass,
+        options: {
+          data: { name, full_name: name }
+        }
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      if (data.user) {
+        const newUser: User = {
+          id: data.user.id,
+          name: name || email.split('@')[0],
+          email,
+          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
+          role: 'STUDENT',
+          created_at: new Date().toISOString()
+        };
+
+        await supabase.from('users').upsert([newUser]);
+        setCurrentUser(newUser);
+        closeAuthModal();
+        showToast('Pendaftaran akun berhasil! Selamat belajar.', 'success');
+        return { success: true };
+      }
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Gagal mendaftar akun' };
+    }
+  };
+
+  const resetPasswordWithSupabase = async (email: string): Promise<{ success: boolean; error?: string }> => {
+    if (!isSupabaseConfigured) {
+      showToast(`Instruksi reset password (simulasi) telah dikirim ke ${email}`, 'info');
+      return { success: true };
+    }
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) return { success: false, error: error.message };
+      showToast(`Link pemulihan kata sandi telah dikirim ke email ${email}`, 'success');
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Gagal mengirim email reset password' };
+    }
+  };
+
+  const logout = async () => {
+    if (isSupabaseConfigured) {
+      await supabase.auth.signOut();
+    }
     setCurrentUser(null);
     setCurrentRoute('home');
     showToast('Anda telah keluar dari akun.', 'info');
@@ -619,6 +771,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast(`Status transaksi #${targetOrder.order_number} diubah menjadi ${status}`, 'info');
   };
 
+  const verifyPaymentAndFulfillOrder = async (orderId: string): Promise<boolean> => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return false;
+
+    const result = await verifyAndFulfillOrder(orderId, order.user_id, order.course_id);
+    if (result.success) {
+      const paidAt = new Date().toISOString();
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, payment_status: 'PAID', paid_at: paidAt } : o));
+
+      if (result.enrollment) {
+        setEnrollments(prev => {
+          const exists = prev.some(e => e.user_id === result.enrollment!.user_id && e.course_id === result.enrollment!.course_id);
+          return exists ? prev : [result.enrollment!, ...prev];
+        });
+      }
+
+      showToast(result.message, 'success');
+      return true;
+    } else {
+      showToast('Gagal memverifikasi status pembayaran.', 'error');
+      return false;
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -638,6 +814,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         closeAuthModal,
         login,
         logout,
+        loginWithSupabase,
+        signUpWithSupabase,
+        resetPasswordWithSupabase,
         updateUserRole,
         updateUserProfile,
         courses,
@@ -656,6 +835,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toggleLessonCompleted,
         createOrderAndCheckout,
         simulatePaymentSuccess,
+        verifyPaymentAndFulfillOrder,
         addLessonComment,
         createCourse,
         updateCourse,

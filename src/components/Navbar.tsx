@@ -72,6 +72,17 @@ export const Navbar: React.FC = () => {
               Jalur Belajar
             </button>
 
+            <button
+              onClick={() => navigateTo('blog')}
+              className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                currentRoute === 'blog' || currentRoute === 'blog-detail'
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+              }`}
+            >
+              Blog & Edukasi
+            </button>
+
             {currentUser && (
               <button
                 onClick={() => navigateTo('dashboard')}

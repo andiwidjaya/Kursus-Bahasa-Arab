@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { PaymentMethod, Order } from '../types';
+import { generatePaymentDetails } from '../lib/payment';
 import { 
-  ShieldCheck, CreditCard, QrCode, Building2, Smartphone, ArrowRight, 
-  CheckCircle2, AlertCircle, Sparkles, Copy, Check 
+  ShieldCheck, CreditCard, QrCode, ArrowRight, 
+  AlertCircle, Sparkles, Copy, Check, Clock, Loader2 
 } from 'lucide-react';
 
 export const CheckoutPage: React.FC = () => {
@@ -12,7 +13,7 @@ export const CheckoutPage: React.FC = () => {
     courses, 
     currentUser, 
     createOrderAndCheckout, 
-    simulatePaymentSuccess, 
+    verifyPaymentAndFulfillOrder, 
     navigateTo, 
     showToast 
   } = useApp();
@@ -24,6 +25,7 @@ export const CheckoutPage: React.FC = () => {
   const [discountPercent, setDiscountPercent] = useState(0);
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
   const [isCopied, setIsCopied] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const rawPrice = course.discount_price || course.price;
   const discountAmount = (rawPrice * discountPercent) / 100;
@@ -44,27 +46,41 @@ export const CheckoutPage: React.FC = () => {
 
   const handleProcessCheckout = () => {
     if (!currentUser) {
-      showToast('Harap login terlebih dahulu.', 'warning');
+      showToast('Harap login terlebih dahulu untuk melakukan transaksi.', 'warning');
       return;
     }
     const order = createOrderAndCheckout(course.id, paymentMethod);
     setActiveOrder(order);
   };
 
-  const handleSimulatePaymentCompletion = () => {
+  const handleVerifyPaymentWebhook = async () => {
     if (!activeOrder) return;
-    simulatePaymentSuccess(activeOrder.id);
-    setTimeout(() => {
-      navigateTo('learn', { courseId: course.id, courseSlug: course.slug });
-    }, 1500);
+    setIsVerifying(true);
+
+    try {
+      const verified = await verifyPaymentAndFulfillOrder(activeOrder.id);
+      if (verified) {
+        setTimeout(() => {
+          navigateTo('learn', { courseId: course.id, courseSlug: course.slug });
+        }, 1200);
+      }
+    } catch (err: any) {
+      showToast('Gagal memverifikasi status pembayaran.', 'error');
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     setIsCopied(true);
-    showToast('Nomor Virtual Account tersalin!', 'info');
+    showToast('Nomor tersalin ke clipboard!', 'info');
     setTimeout(() => setIsCopied(false), 2000);
   };
+
+  const paymentDetails = activeOrder 
+    ? generatePaymentDetails(activeOrder.order_number, activeOrder.payment_method, activeOrder.amount)
+    : null;
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
@@ -85,7 +101,7 @@ export const CheckoutPage: React.FC = () => {
             
             <h2 className="font-bold text-sm text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
               <CreditCard className="w-4 h-4 text-emerald-600" />
-              Pilih Metode Pembayaran
+              Pilih Metode Pembayaran (Midtrans Integration)
             </h2>
 
             <div className="space-y-3">
@@ -136,7 +152,7 @@ export const CheckoutPage: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-900">BCA Virtual Account</p>
-                    <p className="text-[10px] text-slate-500">Konfirmasi Pembayaran Otomatis</p>
+                    <p className="text-[10px] text-slate-500">Konfirmasi Pembayaran Otomatis Backend</p>
                   </div>
                 </div>
               </label>
@@ -160,7 +176,7 @@ export const CheckoutPage: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-900">Mandiri Virtual Account</p>
-                    <p className="text-[10px] text-slate-500">Konfirmasi Pembayaran Otomatis</p>
+                    <p className="text-[10px] text-slate-500">Konfirmasi Pembayaran Otomatis Backend</p>
                   </div>
                 </div>
               </label>
@@ -264,7 +280,7 @@ export const CheckoutPage: React.FC = () => {
 
         </div>
       ) : (
-        /* Active Payment Modal / Simulator View */
+        /* Active Payment Modal / Webhook Engine Simulator View */
         <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl max-w-2xl mx-auto space-y-6 text-center animate-in zoom-in-95">
           
           <div className="inline-flex p-3 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200">
@@ -272,21 +288,49 @@ export const CheckoutPage: React.FC = () => {
           </div>
 
           <div>
-            <span className="text-[10px] font-extrabold px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 border border-amber-500/20 uppercase tracking-wide">
-              Status Pembayaran: PENDING
+            <span className="text-[10px] font-extrabold px-3 py-1 rounded-full bg-amber-500/10 text-amber-700 border border-amber-500/20 uppercase tracking-wide flex items-center justify-center gap-1.5 w-fit mx-auto">
+              <Clock className="w-3.5 h-3.5" /> STATUS PEMBAYARAN: PENDING
             </span>
             <h2 className="text-xl font-black text-slate-900 mt-2">Selesaikan Pembayaran Anda</h2>
-            <p className="text-xs text-slate-500">Order ID: #{activeOrder.order_number}</p>
+            <p className="text-xs text-slate-500">Nomor Invoice: #{activeOrder.order_number}</p>
           </div>
 
           {/* Payment Detail Details depending on method */}
           <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 max-w-md mx-auto space-y-4">
             
-            {activeOrder.payment_method === 'QRIS' ? (
+            {paymentDetails?.vaNumber ? (
+              <div className="space-y-3 text-left">
+                <p className="text-xs font-bold text-slate-800">Transfer {paymentDetails.bank} Virtual Account:</p>
+                <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex justify-between items-center">
+                  <div>
+                    <p className="text-[10px] text-slate-400">Nomor Virtual Account</p>
+                    <p className="text-sm font-mono font-bold text-slate-900">{paymentDetails.vaNumber}</p>
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(paymentDetails.vaNumber || '')}
+                    className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+                  >
+                    {isCopied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                <div className="flex justify-between text-xs font-semibold pt-1">
+                  <span className="text-slate-500">Total Tagihan:</span>
+                  <span className="text-emerald-700 font-extrabold">{formatRupiah(activeOrder.amount)}</span>
+                </div>
+
+                <div className="pt-2 text-[11px] text-slate-500 space-y-1">
+                  <p className="font-bold text-slate-700">Petunjuk Pembayaran:</p>
+                  <ol className="list-decimal list-inside space-y-0.5 text-[10px]">
+                    {paymentDetails.instructions.map((step, idx) => (
+                      <li key={idx}>{step}</li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+            ) : (
               <div className="space-y-3">
-                <p className="text-xs font-bold text-slate-800">Scan QRIS dibawah memakai aplikasi m-Banking / E-Wallet</p>
-                <div className="w-44 h-44 mx-auto bg-white p-3 rounded-2xl border border-slate-300 shadow-inner flex items-center justify-center">
-                  {/* Dynamic QR Code SVG graphic */}
+                <p className="text-xs font-bold text-slate-800">Scan QRIS Nasional melalui Aplikasi E-Wallet / Mobile Banking</p>
+                <div className="w-48 h-48 mx-auto bg-white p-3 rounded-2xl border border-slate-300 shadow-inner flex items-center justify-center relative group">
                   <svg className="w-full h-full text-slate-900" viewBox="0 0 100 100" fill="currentColor">
                     <rect x="10" y="10" width="25" height="25" fill="#0f172a"/>
                     <rect x="15" y="15" width="15" height="15" fill="#ffffff"/>
@@ -304,27 +348,7 @@ export const CheckoutPage: React.FC = () => {
                     <rect x="60" y="60" width="20" height="20" fill="#0f172a"/>
                   </svg>
                 </div>
-                <p className="text-[11px] font-bold text-emerald-700">Nominal: {formatRupiah(activeOrder.amount)}</p>
-              </div>
-            ) : (
-              <div className="space-y-3 text-left">
-                <p className="text-xs font-bold text-slate-800">Transfer Virtual Account:</p>
-                <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex justify-between items-center">
-                  <div>
-                    <p className="text-[10px] text-slate-400">Nomor Virtual Account</p>
-                    <p className="text-sm font-mono font-bold text-slate-900">88001199223344</p>
-                  </div>
-                  <button
-                    onClick={() => copyToClipboard('88001199223344')}
-                    className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
-                  >
-                    {isCopied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                </div>
-                <div className="flex justify-between text-xs font-semibold pt-1">
-                  <span className="text-slate-500">Total Nominal:</span>
-                  <span className="text-emerald-700 font-extrabold">{formatRupiah(activeOrder.amount)}</span>
-                </div>
+                <p className="text-[11px] font-bold text-emerald-700">Total Nominal: {formatRupiah(activeOrder.amount)}</p>
               </div>
             )}
 
@@ -334,18 +358,26 @@ export const CheckoutPage: React.FC = () => {
           <div className="pt-4 border-t border-slate-100 space-y-3">
             <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-200 text-xs text-emerald-800">
               <p className="font-bold flex items-center justify-center gap-1">
-                <Sparkles className="w-4 h-4 text-emerald-600" /> Fitur Simulasi Webhook Payment Gateway
+                <Sparkles className="w-4 h-4 text-emerald-600" /> Payment Gateway Webhook Status Verification
               </p>
               <p className="text-[11px] mt-0.5 text-emerald-700">
-                Sesuai PRD §14, akses kursus akan diberikan otomatis hanya setelah sinyal konfirmasi pembayaran terverifikasi backend.
+                Sesuai persyatan PRD §14, akses kelas baru diterbitkan setelah status verifikasi server bernilai <strong>PAID</strong>.
               </p>
             </div>
 
             <button
-              onClick={handleSimulatePaymentCompletion}
-              className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-xs font-extrabold text-slate-950 bg-emerald-400 hover:bg-emerald-300 transition-colors shadow-lg shadow-emerald-500/20"
+              onClick={handleVerifyPaymentWebhook}
+              disabled={isVerifying}
+              className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-xs font-extrabold text-slate-950 bg-emerald-400 hover:bg-emerald-300 transition-colors shadow-lg shadow-emerald-500/20 disabled:opacity-50 flex items-center justify-center gap-2 mx-auto"
             >
-              Simulasi Pembayaran Berhasil (Payment Webhook)
+              {isVerifying ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Memverifikasi Sinyal Webhook Server...
+                </>
+              ) : (
+                'Verifikasi Pembayaran & Aktifkan Akses Kelas (Webhook Engine)'
+              )}
             </button>
           </div>
 

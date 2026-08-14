@@ -7,8 +7,14 @@ import {
   Sparkles, TrendingUp, Award, CreditCard, ChevronRight, FileText, ArrowRight 
 } from 'lucide-react';
 
+import { checkAdminAuthorization } from '../lib/authGuard';
+import { ShieldAlert } from 'lucide-react';
+
 export const AdminDashboardPage: React.FC = () => {
   const { 
+    currentUser,
+    navigateTo,
+    switchUserRole,
     courses, 
     modules, 
     lessons, 
@@ -29,6 +35,40 @@ export const AdminDashboardPage: React.FC = () => {
     updateUserRole, 
     showToast 
   } = useApp();
+
+  const authResult = checkAdminAuthorization(currentUser);
+
+  if (!authResult.allowed) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-20 text-center space-y-6">
+        <div className="w-16 h-16 rounded-3xl bg-amber-100 text-amber-600 mx-auto flex items-center justify-center border border-amber-200 shadow-sm">
+          <ShieldAlert className="w-8 h-8" />
+        </div>
+        <div className="space-y-2">
+          <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">Proteksi Akses Administrator</span>
+          <h1 className="text-2xl font-black text-slate-900">Akses Terbatas — Khusus Admin</h1>
+          <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
+            {authResult.reason}
+          </p>
+        </div>
+
+        <div className="flex justify-center gap-3 pt-2">
+          <button
+            onClick={() => navigateTo('home')}
+            className="px-6 py-3 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
+          >
+            Kembali ke Beranda
+          </button>
+          <button
+            onClick={() => switchUserRole('ADMIN')}
+            className="px-6 py-3 rounded-xl text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 transition-colors shadow-md shadow-amber-500/20"
+          >
+            ⚡ Masuk Peran Demo Admin
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Navigation Tab State
   const [activeTab, setActiveTab] = useState<'metrics' | 'courses' | 'modules' | 'lessons' | 'orders' | 'users'>('metrics');

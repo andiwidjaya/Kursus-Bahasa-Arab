@@ -41,6 +41,9 @@ export const Footer: React.FC = () => {
                 <button onClick={() => navigateTo('courses')} className="hover:text-emerald-400 transition-colors">Katalog Kursus Lengkap</button>
               </li>
               <li>
+                <button onClick={() => navigateTo('blog')} className="hover:text-emerald-400 transition-colors">Blog & Artikel Edukasi</button>
+              </li>
+              <li>
                 <button onClick={() => navigateTo('dashboard')} className="hover:text-emerald-400 transition-colors">Dashboard Siswa</button>
               </li>
               <li>

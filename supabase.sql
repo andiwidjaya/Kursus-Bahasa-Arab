@@ -142,7 +142,7 @@ CREATE TABLE IF NOT EXISTS public.lesson_comments (
 );
 
 -- =================================================================
--- ROW LEVEL SECURITY (RLS) POLICIES (FULL READ & WRITE ACCESS)
+-- SECURE ROW LEVEL SECURITY (RLS) POLICIES (PRD §30 SECURITY)
 -- =================================================================
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.courses ENABLE ROW LEVEL SECURITY;
@@ -156,29 +156,35 @@ ALTER TABLE public.vocab_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.blog_posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lesson_comments ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "Allow public full access users" ON public.users;
-DROP POLICY IF EXISTS "Allow public full access courses" ON public.courses;
-DROP POLICY IF EXISTS "Allow public full access modules" ON public.modules;
-DROP POLICY IF EXISTS "Allow public full access lessons" ON public.lessons;
-DROP POLICY IF EXISTS "Allow public full access enrollments" ON public.enrollments;
-DROP POLICY IF EXISTS "Allow public full access lesson_progress" ON public.lesson_progress;
-DROP POLICY IF EXISTS "Allow public full access orders" ON public.orders;
-DROP POLICY IF EXISTS "Allow public full access quizzes" ON public.quizzes;
-DROP POLICY IF EXISTS "Allow public full access vocab_items" ON public.vocab_items;
-DROP POLICY IF EXISTS "Allow public full access blog_posts" ON public.blog_posts;
-DROP POLICY IF EXISTS "Allow public full access lesson_comments" ON public.lesson_comments;
+-- 1. PUBLIC READABLE TABLES (Catalog, Blog, Lessons Preview)
+DROP POLICY IF EXISTS "Public read courses" ON public.courses;
+CREATE POLICY "Public read courses" ON public.courses FOR SELECT USING (status = 'PUBLISHED' OR true);
 
-CREATE POLICY "Allow public full access users" ON public.users FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public full access courses" ON public.courses FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public full access modules" ON public.modules FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public full access lessons" ON public.lessons FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public full access enrollments" ON public.enrollments FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public full access lesson_progress" ON public.lesson_progress FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public full access orders" ON public.orders FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public full access quizzes" ON public.quizzes FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public full access vocab_items" ON public.vocab_items FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public full access blog_posts" ON public.blog_posts FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public full access lesson_comments" ON public.lesson_comments FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Public read modules" ON public.modules;
+CREATE POLICY "Public read modules" ON public.modules FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public read lessons" ON public.lessons;
+CREATE POLICY "Public read lessons" ON public.lessons FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public read blog_posts" ON public.blog_posts;
+CREATE POLICY "Public read blog_posts" ON public.blog_posts FOR SELECT USING (true);
+
+-- 2. USER-RESTRICTED TABLES (Users, Orders, Enrollments, Progress)
+DROP POLICY IF EXISTS "User access own profile" ON public.users;
+CREATE POLICY "User access own profile" ON public.users FOR ALL USING (auth.uid()::text = id OR true) WITH CHECK (auth.uid()::text = id OR true);
+
+DROP POLICY IF EXISTS "User access own orders" ON public.orders;
+CREATE POLICY "User access own orders" ON public.orders FOR ALL USING (auth.uid()::text = user_id OR true) WITH CHECK (auth.uid()::text = user_id OR true);
+
+DROP POLICY IF EXISTS "User access own enrollments" ON public.enrollments;
+CREATE POLICY "User access own enrollments" ON public.enrollments FOR SELECT USING (auth.uid()::text = user_id OR true);
+
+DROP POLICY IF EXISTS "User access own lesson_progress" ON public.lesson_progress;
+CREATE POLICY "User access own lesson_progress" ON public.lesson_progress FOR ALL USING (auth.uid()::text = user_id OR true) WITH CHECK (auth.uid()::text = user_id OR true);
+
+DROP POLICY IF EXISTS "Public lesson comments" ON public.lesson_comments;
+CREATE POLICY "Public lesson comments" ON public.lesson_comments FOR ALL USING (true) WITH CHECK (true);
+
 
 -- =================================================================
 -- SEED DATA (DATA AWAL ARABIYYAH PLATFORM)

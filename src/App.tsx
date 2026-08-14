@@ -12,6 +12,8 @@ import { CheckoutPage } from './pages/CheckoutPage';
 import { StudentDashboardPage } from './pages/StudentDashboardPage';
 import { LearningPlayerPage } from './pages/LearningPlayerPage';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import { BlogListPage } from './pages/BlogListPage';
+import { BlogDetailPage } from './pages/BlogDetailPage';
 
 const MainContent: React.FC = () => {
   const { currentRoute } = useApp();
@@ -32,6 +34,10 @@ const MainContent: React.FC = () => {
         return <LearningPlayerPage />;
       case 'admin':
         return <AdminDashboardPage />;
+      case 'blog':
+        return <BlogListPage />;
+      case 'blog-detail':
+        return <BlogDetailPage />;
       default:
         return <HomePage />;
     }
