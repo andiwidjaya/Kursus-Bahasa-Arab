@@ -210,17 +210,25 @@ export async function generateRAGResponse(
   customApiKey?: string
 ): Promise<{ text: string; citations: RAGContextItem[]; suggestedFollowups: string[] }> {
   
-  const apiKey = customApiKey || (import.meta.env.VITE_GEMINI_API_KEY as string) || '';
+  const envKey = (import.meta.env.VITE_GEMINI_API_KEY as string || '').trim();
+  const localKey = (localStorage.getItem('arabiyyah_gemini_api_key') || '').trim();
+  
+  // Prioritize explicit customApiKey, then .env, then local storage
+  const apiKey = (customApiKey && customApiKey.trim() !== '') 
+    ? customApiKey.trim() 
+    : (envKey !== '' && !envKey.includes('your_gemini_api_key_here')) 
+      ? envKey 
+      : localKey;
 
-  if (!apiKey || apiKey.trim() === '') {
+  if (!apiKey) {
     return {
       text: `⚠️ **Gemini API Key Belum Dikonfigurasi**
 
 Untuk menggunakan fitur **Asisten AI Produksi**, harap masukkan Gemini API Key Anda:
 1. Klik tombol **Set Gemini Key** di bagian atas halaman ini (atau ikon kunci di widget).
-2. Atau tambahkan \`VITE_GEMINI_API_KEY=your_key_here\` di dalam file \`.env\` server/aplikasi Anda.
+2. Atau tambahkan \`VITE_GEMINI_API_KEY=your_key_here\` di dalam file \`.env\` aplikasi Anda.
 
- API Key dapat diperoleh gratis melalui [Google AI Studio](https://aistudio.google.com/).`,
+🔑 API Key dapat diperoleh secara gratis melalui [Google AI Studio](https://aistudio.google.com/).`,
       citations: retrievedContexts,
       suggestedFollowups: [
         'Bagaimana cara mendapatkan Gemini API Key?',
@@ -234,8 +242,7 @@ Untuk menggunakan fitur **Asisten AI Produksi**, harap masukkan Gemini API Key A
     `[Sumber ${idx + 1}] (${ctx.title})\nKonteks: ${ctx.fullContent || ctx.snippet}`
   ).join('\n\n');
 
-  try {
-    const prompt = `Anda adalah "Asisten AI Arabiyyah Learning Platform", tutor dan pengajar bahasa Arab profesional.
+  const prompt = `Anda adalah "Asisten AI Arabiyyah Learning Platform", tutor dan pengajar bahasa Arab profesional.
 Tugas Anda adalah memberikan jawaban yang akurat, ramah, terstruktur, dan edukatif berdasarkan **Konteks RAG** yang diberikan di bawah ini.
 
 Konteks Terkait dari Platform:
@@ -250,55 +257,64 @@ Instruksi Format Jawaban:
 3. Tuliskan analisis kedudukan kata (I'rab/Tashrif) atau penjelasan ringkas yang mudah dipahami santri.
 4. Bila pertanyaan berupa rekomendasi materi, sebutkan nama kursus atau pelajaran secara spesifik berdasarkan konteks RAG.`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey.trim()}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
-    });
+  const endpointsToTry = [
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
+    'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent'
+  ];
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const errorMsg = errorData.error?.message || response.statusText;
-      return {
-        text: `❌ **Gagal Memanggil Gemini API (${response.status})**
+  let lastErrorMsg = '';
+  let lastStatus = 0;
 
-Pesan Kesalahan: ${errorMsg}
+  for (const endpoint of endpointsToTry) {
+    try {
+      const response = await fetch(
+        `${endpoint}?key=${encodeURIComponent(apiKey)}`,
+        {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+          })
+        }
+      );
 
-Mohon periksa kembali apakah Gemini API Key yang Anda masukkan valid dan memiliki kuota yang mencukupi.`,
-        citations: retrievedContexts,
-        suggestedFollowups: generateSuggestedFollowups(userQuery)
-      };
+      if (response.ok) {
+        const data = await response.json();
+        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (aiText) {
+          return {
+            text: aiText,
+            citations: retrievedContexts,
+            suggestedFollowups: generateSuggestedFollowups(userQuery)
+          };
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        lastStatus = response.status;
+        lastErrorMsg = errorData.error?.message || response.statusText;
+      }
+    } catch (err: any) {
+      lastErrorMsg = err?.message || 'Network error';
     }
-
-    const data = await response.json();
-    const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (aiText) {
-      return {
-        text: aiText,
-        citations: retrievedContexts,
-        suggestedFollowups: generateSuggestedFollowups(userQuery)
-      };
-    }
-
-    return {
-      text: 'Maaf, tidak ada respon teks yang dihasilkan oleh model AI.',
-      citations: retrievedContexts,
-      suggestedFollowups: generateSuggestedFollowups(userQuery)
-    };
-
-  } catch (err: any) {
-    return {
-      text: `❌ **Terjadi Kesalahan Koneksi AI**
-
-Gagal terhubung ke layanan Google Gemini API: ${err?.message || 'Network error'}.
-Pastikan koneksi internet Anda stabil.`,
-      citations: retrievedContexts,
-      suggestedFollowups: generateSuggestedFollowups(userQuery)
-    };
   }
+
+  return {
+    text: `❌ **Gagal Memanggil Gemini API (${lastStatus || 'Koneksi'})**
+
+Pesan Kesalahan: ${lastErrorMsg}
+
+Mohon pastikan:
+1. API Key yang ada di \`.env\` (\`VITE_GEMINI_API_KEY\`) atau di tombol **Set Gemini Key** sudah benar.
+2. Akses API Google Generative AI / Google AI Studio telah diaktifkan untuk akun/proyek Anda di [Google AI Studio](https://aistudio.google.com/).`,
+    citations: retrievedContexts,
+    suggestedFollowups: generateSuggestedFollowups(userQuery)
+  };
 }
 
 /**
